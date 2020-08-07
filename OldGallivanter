@@ -1,0 +1,1232 @@
+import pygame, sys
+from pygame.constants import K_ESCAPE, RESIZABLE
+from Enemies import *
+from Character import *
+
+pygame.init()
+
+timer = pygame.time.Clock()
+screen = pygame.display.set_mode((800, 600), RESIZABLE)
+pygame.display.set_caption("Gallivanter")
+fontOne = pygame.font.Font("freesansbold.ttf", 60) 
+fontTwo = pygame.font.Font("freesansbold.ttf", 30)
+
+right = False
+left = False
+steps = 0
+
+#Animated pictures
+moveRight = [pygame.image.load('C:/Users/Lam/Documents/Gallivanter/R1.png'), pygame.image.load('C:/Users/Lam/Documents/Gallivanter/R2.PNG'), pygame.image.load('C:/Users/Lam/Documents/Gallivanter/R3.PNG'), pygame.image.load('C:/Users/Lam/Documents/Gallivanter/R4.PNG'), pygame.image.load('C:/Users/Lam/Documents/Gallivanter/R5.PNG'), pygame.image.load('C:/Users/Lam/Documents/Gallivanter/R6.PNG'), pygame.image.load('C:/Users/Lam/Documents/Gallivanter/R7.PNG'), pygame.image.load('C:/Users/Lam/Documents/Gallivanter/R8.PNG'), pygame.image.load('C:/Users/Lam/Documents/Gallivanter/R9.PNG')]
+standing = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/R10.PNG')
+
+transparent = (0,0,0,0)
+enemy_health = 100
+user_health = 100
+
+ #hit sound effect
+hit_sound = pygame.mixer.Sound('C:/Users/Lam/Documents/Gallivanter/Hit.wav')
+
+ #music
+music = pygame.mixer.music.load('C:/Users/Lam/Documents/Gallivanter/Music.mp3') 
+
+ #play the music on loop
+pygame.mixer.music.play(-1)    
+
+ #making the music quieter.
+pygame.mixer.music.set_volume(0.7)
+
+
+#to draw text 
+def draw_text(text, font, colour, surface, x, y):
+    textobject = font.render(text, 1, colour)
+    textrect =  textobject.get_rect()
+    textrect.topleft = (x,y)
+    surface.blit(textobject, textrect) 
+
+#main display screen
+def main_menu():
+    click = False
+
+    while True:
+
+        background = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/Title ground.png').convert()
+        background = pygame.transform.scale(background, (800,600))
+        screen.blit(background,(0,0))
+        title = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/Gallivanter Title.png')
+        screen.blit(title,(65,50))
+        logo = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/Logo.png')
+        screen.blit(logo, (335,160))
+
+        mx, my = pygame.mouse.get_pos()
+
+        #main menu buttons
+        button_game = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/Start.png')
+        button_settings = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/Settings.png')
+        button_exit = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/Exit.png')
+        screen.blit(button_game,(275,285)) 
+        screen.blit(button_settings,(275,385))
+        screen.blit(button_exit,(275,485))
+
+        #interactive buttons
+        button_gameHover = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/StartHover.png')
+        button_settingHover = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/SettingsHover.png')
+        button_exitHover = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/ExitHover.png') 
+
+
+        #lights up when hovered and starts game
+        if button_game.get_rect(center=(400,330)).collidepoint((mx, my)):
+            screen.blit(button_gameHover,(275,285))
+            if click:
+                game()      
+        #lights up when hovered and brings to the settings menu
+        if button_settings.get_rect(center=(400,430)).collidepoint((mx, my)):
+            screen.blit(button_settingHover,(275,385))
+            if click:
+                settingsMain()
+
+        #to exit game
+        if button_exit.get_rect(center=(400,530)).collidepoint((mx, my)):
+            screen.blit(button_exitHover,(275,485))
+            if click:
+                pygame.quit()
+                sys.exit()
+
+        #
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == K_ESCAPE: 
+                    pygame.quit()
+                    sys.exit()
+            #         
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    click = True
+            else: 
+                click = False   
+
+        pygame.display.update()
+        timer.tick(60)
+
+
+def game():
+    running = True
+
+    while running:
+        run()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                 if event.key == K_ESCAPE:
+                     running = False
+
+        pygame.display.update()
+        timer.tick(60)
+
+
+def settingsMain():
+    running = True
+    click = False
+
+    while running:           
+        mx, my = pygame.mouse.get_pos() 
+
+        settings_menu = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/SettingsMenu.png')
+        settings_menu = pygame.transform.scale(settings_menu, (700,500))
+        screen.blit(settings_menu, (60,95))
+
+
+        button_sound = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/Sound.png')
+        button_video = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/Video.png')
+        button_back = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/Back.png')
+        screen.blit(button_sound,(120,295)) 
+        screen.blit(button_video,(440,295))
+        screen.blit(button_back,(280,430))
+
+        button_soundHover = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/SoundHover.png')
+        button_videoHover = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/VideoHover.png')
+        button_backHover = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/BackHover.png')
+
+        #lights up when hovered and brings to the sound menu
+        if button_sound.get_rect(center=(225,328)).collidepoint((mx, my)):
+            screen.blit(button_soundHover,(120,295))
+            if click:
+                sound()
+        #lights up when hovered and brings to the video menu
+        if button_video.get_rect(center=(565,336)).collidepoint((mx, my)):
+            screen.blit(button_videoHover,(440,295))
+            if click:
+                video()
+
+        #to exit game
+        if button_back.get_rect(center=(405,473)).collidepoint((mx, my)):
+            screen.blit(button_backHover,(280,430))
+            if click:
+                running = False
+
+        #to go back
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == K_ESCAPE: 
+                    running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    click = True
+            else: 
+                click = False   
+
+        pygame.display.update()
+        timer.tick(60)
+
+def settingsPause():
+    running = True
+    click = False
+
+    while running:   
+        mx, my = pygame.mouse.get_pos() 
+
+        settings_menu = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/SettingsMenu.png')
+        settings_menu = pygame.transform.scale(settings_menu, (700,500))
+        screen.blit(settings_menu, (60,95))
+
+        button_sound = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/Sound.png')
+        button_video = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/Video.png')
+        button_back = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/Back.png')
+        screen.blit(button_sound,(120,295)) 
+        screen.blit(button_video,(440,295))
+        screen.blit(button_back,(280,430))
+
+        button_soundHover = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/SoundHover.png')
+        button_videoHover = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/VideoHover.png')
+        button_backHover = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/BackHover.png')
+
+        #lights up when hovered and brings to the sound menu
+        if button_sound.get_rect(center=(225,328)).collidepoint((mx, my)):
+            screen.blit(button_soundHover,(120,295))
+            if click:
+                sound()
+        #lights up when hovered and brings to the video menu
+        if button_video.get_rect(center=(565,336)).collidepoint((mx, my)):
+            screen.blit(button_videoHover,(440,295))
+            if click:
+                video()
+
+        #to exit game
+        if button_back.get_rect(center=(405,473)).collidepoint((mx, my)):
+            screen.blit(button_backHover,(280,430))
+            if click:
+                running = False
+
+        #to go back
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == K_ESCAPE: 
+                    running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    click = True
+            else: 
+                click = False   
+
+        pygame.display.update()
+        timer.tick(60)
+
+def sound():
+    running = True
+    click = False  
+
+    while running:
+
+        mx, my = pygame.mouse.get_pos()  
+
+        sound_menu = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/SoundMenu.png')
+        sound_menu = pygame.transform.scale(sound_menu, (700,500))
+        screen.blit(sound_menu, (60,95))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == K_ESCAPE: 
+                    running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    click = True
+            else: 
+                click = False
+
+        pygame.display.update()
+        timer.tick(60)
+
+
+def video():
+    running = True
+    click = False    
+
+    while running:
+
+        mx, my = pygame.mouse.get_pos()
+
+        video_menu = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/VideoMenu.png')
+        video_menu = pygame.transform.scale(video_menu, (700,500))
+        screen.blit(video_menu, (60,95))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == K_ESCAPE: 
+                    running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    click = True
+            else: 
+                click = False
+
+
+        pygame.display.update()
+        timer.tick(60)
+
+
+def run():
+    global steps
+    global screen
+    global enemy_health
+    global user_health
+    bool = True
+
+    x = 350
+    y = 400
+    f = 0
+
+    i = 1
+
+    round = False
+
+    while bool:
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                bool = False
+
+        pygame.time.delay(60)
+        timer.tick(27)
+
+        background = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/picture.PNG').convert()
+
+        #display the background onto the screen
+        screen.blit(background, (f,0))
+
+        #settings    
+        settings_icon = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/SettingsIcon.png')
+        settings_sized = pygame.transform.scale(settings_icon, (75,75))
+
+        #display settings onto the screen
+        screen.blit(settings_sized, (740, 15))
+
+        #get the position of the mouse
+        mouse_pos = pygame.mouse.get_pos()
+
+
+        #if the mouse clicks on the settings icon
+        if 740 < mouse_pos[0] < 790 and 15 < mouse_pos[1] < 65:
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                settingsPause()
+
+
+        if round == False:
+            x,y,f,round, left, right = movement(x, y, f,round, False, False)
+
+        else:
+            #round 1
+            if i == 1:
+                round = round_1(x,y, round)
+
+            #round 2   
+            if i == 2:
+                round = round_2(x,y, round)
+
+            #round 3
+
+            #round 4
+
+            if round == False:
+                f = 0
+                #i increases after each round ends
+                i +=1
+
+
+        #if steps is more than 27, then the array will reset
+        if steps >= 27:
+            steps = 0
+
+        #drawing the character 
+        character_sized = pygame.transform.scale(moveRight[steps//3], (125,125))
+        standing_sized = pygame.transform.scale(standing, (125,125))
+
+        if right:
+            screen.blit(character_sized, (x,y))
+            #counting the steps to tell the code when the array will reset (so that it doesn't run out of photos) 
+            steps = steps + 1
+
+        elif left:
+            #flip the image to make it seem like the user is moving left
+            screen.blit(pygame.transform.flip(character_sized, True, False), (x,y))
+            steps = steps + 1
+
+        #if the character is not moving then its standing picture will be shown on the screen     
+        else:
+            screen.blit(standing_sized, (x,y))
+
+
+        pygame.display.update()     
+
+
+def movement(x,y,f, round, left, right):
+
+    #setting the background image
+    if f <= -606:
+        f = 0
+
+    #controls of the character and the background
+    keys = pygame.key.get_pressed()
+
+    if keys[pygame.K_a]:
+        left = True
+        right = False
+
+        if f >= 0:
+            x = x-10
+
+            if x <=0:
+                x = 0
+
+        else:
+            f = f+10
+
+    elif keys[pygame.K_d]:
+        right = True
+        left = False
+
+        if x < 350:
+            x = x + 10
+
+        else:
+            f = f-10
+
+    else:
+        left = False
+        right = False
+        steps = 0
+
+    #if the enemy appears
+    if(f <=-250):
+        round = True
+        right = False
+        left = False
+        #transition slide
+        screen.fill((0,0,0))
+        #center the characters
+        x = 220
+
+    return x, y, f, round, left, right
+
+
+def round_1(x,y, round):
+    global enemy_sized
+
+    #enemy    
+    enemy = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/enemy.png')
+    enemy_sized = pygame.transform.scale(enemy, (125, 130))
+    screen.blit(enemy_sized, (x + 220, y))
+
+    #text box
+    text_box1 = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/Textbox.png')
+    text_box1 = pygame.transform.scale(text_box1,(500,170))
+    screen.blit(text_box1,(170,200))
+    text1 = draw_text("Prepare to meet your doom!", fontTwo, (0,0,0), screen, 210,230)
+
+    incorrect = 0
+    variable = 1
+
+    global correct_variable
+    global incorrect_variable
+
+    correct_variable = 0
+    incorrect_variable = 0
+
+    global enemy_1
+    global user 
+
+    user_damage = 20
+    enemy_damage = 50
+
+    enemy_1 = Enemies(enemy_health, enemy_damage) 
+    user = Character(user_health, user_damage)
+
+    global user_dead
+    global enemy_dead
+
+    user_dead = False
+    enemy_dead = False
+
+    close = False
+
+    keys = pygame.key.get_pressed()
+
+
+    if keys[pygame.K_SPACE]:
+
+        run = True
+
+        while run:
+
+            mouse_pos = pygame.mouse.get_pos()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
+
+            #settings    
+            settings_icon = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/SettingsIcon.png')
+            settings_sized = pygame.transform.scale(settings_icon, (75,75))
+
+            #display settings onto the screen
+            screen.blit(settings_sized, (740, 15))
+
+            close, user_dead, enemy_dead = questions_screen('What is the mean of this set of numbers? 16, 7, 24, 2, 11.', '', 'The answer is: 12.', incorrect,'12',
+                                                             user_damage, enemy_damage, close, 'Add them all together then divide by how many numbers there are.', user_dead, enemy_dead, True, False, False, False)
+
+            if close == True:
+                variable = variable + 1
+                run = False
+                #screen that shows that the health of the characters go down
+                close, user_dead, enemy_dead = questions_screen('In which quadrant of a Cartesian plane do you find the point (-4,-3)?', '', 'The answer is: Third quadrant.', incorrect,'Third quadrant',
+                                                                 user_damage, enemy_damage, close,  'Remember, both of the numbers are negative.', user_dead, enemy_dead, True, False, False, False)
+
+                #text box
+                text_box2 = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/Textbox.png')
+                text_box2 = pygame.transform.scale(text_box1,(500,170))
+                screen.blit(text_box2,(170,200))
+                text2 = draw_text("You won!", fontTwo, (0,0,0), screen, 210,230)
+
+
+                #end the round if the enemy dies
+                if enemy_dead == True:
+                    round = False
+                    return round
+
+            if close == True:
+                variable = variable + 1
+                run = False
+                #screen that shows that the health of the characters go down
+                close, user_dead, enemy_dead = questions_screen('What is 0.45 as a percentage?', '', '45%', incorrect,'45%',
+                                                                 user_damage, enemy_damage, close,  'To convert decimal to a percentage, multiply by 100', user_dead, enemy_dead, True, False, False, False)
+
+                if enemy_dead == True:
+                    round = False
+                    return round
+
+            if close == True:
+                variable = variable + 1
+                run = False
+                #screen that shows that the health of the characters go down
+                close, user_dead, enemy_dead = questions_screen('What is 80000 / 1000?', '', 'The answer is: 80.', incorrect,'80', user_damage, enemy_damage, close,  'Try using long division. You can also cancel out the zeros to get the answer.', user_dead, enemy_dead, True, False, False, False)
+
+                if enemy_dead == True:
+                    round = False
+                    return round
+
+            if close == True:
+                variable = variable + 1
+                run = False
+                #screen that shows that the health of the characters go down
+                close, user_dead, enemy_dead = questions_screen('What is 2:40 am in 24 hour time?', '', 'The answer is: 2:40.', incorrect,'2:40',
+                                                                 user_damage, enemy_damage, close,  'If it before 12 pm, remove the am/pm, if it is after 12 pm, add 12 to the time and remove the am/pm.', user_dead, enemy_dead, True, False, False, False)
+
+                if enemy_dead == True:
+                    round = False
+                    return round
+
+                if user_dead == True:
+                    #add something here to restart the game or round if the user dies + a message
+
+                    #death message
+                    text_box3 = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/Textbox.png')
+                    text_box3 = pygame.transform.scale(text_box1,(500,170))
+                    screen.blit(text_box3,(170,200))
+                    text3 = draw_text("You're no match for me!", fontTwo, (0,0,0), screen, 210,230)
+
+
+                    round = False
+                    return round
+
+
+
+            pygame.display.flip()
+
+
+def round_2(x,y, round):
+    global enemy_sized
+
+    #enemy    
+    enemy = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/Enemy2.png')
+    enemy_sized = pygame.transform.scale(enemy, (125, 130))
+    screen.blit(enemy_sized, (x + 220, y))
+
+    #text box
+    text_box1 = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/Textbox.png')
+    text_box1 = pygame.transform.scale(text_box1,(500,170))
+    screen.blit(text_box1,(170,200))
+    text1 = draw_text("You shouldn't be here.", fontTwo, (0,0,0), screen, 210,230)
+
+    incorrect = 0
+    variable = 1
+
+    global correct_variable
+    global incorrect_variable
+
+    correct_variable = 0
+    incorrect_variable = 0
+
+    global enemy_1
+    global user 
+
+    user_damage = 30
+    enemy_damage = 35
+
+    enemy_1 = Enemies(enemy_health, enemy_damage) 
+    user = Character(user_health, user_damage)
+
+    global user_dead
+    global enemy_dead
+
+    user_dead = False
+    enemy_dead = False
+
+    close = False
+
+    keys = pygame.key.get_pressed()
+
+
+    if keys[pygame.K_SPACE]:
+
+        run = True
+
+        while run:
+            print(enemy_dead)
+            mouse_pos = pygame.mouse.get_pos()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
+
+            #settings    
+            settings_icon = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/SettingsIcon.png')
+            settings_sized = pygame.transform.scale(settings_icon, (75,75))
+
+            #display settings onto the screen
+            screen.blit(settings_sized, (740, 15))
+
+            close, user_dead, enemy_dead = questions_screen('What is 1 x 1?', '', 'The answer is: 1.', incorrect,'1', user_damage, enemy_damage, close, 'Use addition to add the two numbers together.', user_dead, enemy_dead, False, True, False, False)
+
+            if close == True:
+                variable = variable + 1
+                run = False
+                #screen that shows that the health of the characters go down
+                close, user_dead, enemy_dead = questions_screen('What is 2 x 2?', '', 'The answer is: 4.', incorrect,'4', user_damage, enemy_damage, close,  'Use addition to add the two numbers together.', user_dead, enemy_dead, False, True, False, False)
+
+                #text box
+                text_box2 = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/Textbox.png')
+                text_box2 = pygame.transform.scale(text_box1,(500,170))
+                screen.blit(text_box2,(170,200))
+                text2 = draw_text("You won!", fontTwo, (0,0,0), screen, 210,230)
+
+
+                #end the round if the enemy dies
+                if enemy_dead == True:
+                    round = False
+                    return round
+
+            if close == True:
+                variable = variable + 1
+                run = False
+                #screen that shows that the health of the characters go down
+                close, user_dead, enemy_dead = questions_screen('What is 4 x 4?', '', 'The answer is: 16.', incorrect,'16', user_damage, enemy_damage, close,  'Use addition to add the two numbers together.', user_dead, enemy_dead, False, True, False, False)
+
+                if enemy_dead == True:
+                    round = False
+                    return round
+
+            if close == True:
+                variable = variable + 1
+                run = False
+                #screen that shows that the health of the characters go down
+                close, user_dead, enemy_dead = questions_screen('What is 8 x 8?', '', 'The answer is: 64.', incorrect,'64', user_damage, enemy_damage, close,  'Use addition to add the two numbers together.', user_dead, enemy_dead, False, True, False, False)
+
+                if enemy_dead == True:
+                    round = False
+                    return round
+
+            if close == True:
+                variable = variable + 1
+                run = False
+                #screen that shows that the health of the characters go down
+                close, user_dead, enemy_dead = questions_screen('What is 9 + 9?', '', 'The answer is: 18.', incorrect,'18', user_damage, enemy_damage, close,  'Use addition to add the two numbers together.', user_dead, enemy_dead, False, True, False, False)
+
+                if enemy_dead == True:
+                    round = False
+                    return round
+
+                if user_dead == True:
+                    #add something here to restart the game or round if the user dies + a message
+
+                    #text box
+                    text_box3 = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/Textbox.png')
+                    text_box3 = pygame.transform.scale(text_box1,(500,170))
+                    screen.blit(text_box1,(170,200))
+                    text3 = draw_text("You made the wrong choice.", fontTwo, (0,0,0), screen, 210,230)
+
+                    round = False
+                    return round
+
+
+            pygame.display.flip()
+
+
+def questions_screen(text, input, solution, incorrect, quest_answer,user_damage, enemy_damage, close, hint, user_dead, enemy_dead, round1, round2, round3, round4):
+
+    #health values for the characters
+    health = 100
+
+    #input text setup
+    answer = pygame.Rect(100,200, 175,30)
+    answer_status = False
+    input_text = ''
+
+    keys = pygame.key.get_pressed()
+
+    space = False
+
+    questions = True
+
+    while questions:
+
+        mouse_pos = pygame.mouse.get_pos()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                questions = False
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+
+                if answer.collidepoint(event.pos):
+                    answer_status = True
+                else:
+                    answer_status = False
+
+            if event.type == pygame.KEYDOWN:
+
+                if answer_status == True:
+                    if event.key  == pygame.K_BACKSPACE:
+                        input_text = input_text[:-1]
+                    else:
+                        input_text = input_text + event.unicode
+
+        #creating a new screen to display the math questions    
+        questions = pygame.display.set_mode((800,600))
+        questions.fill((255,255,255))
+
+        #settings icon  
+        settings_icon = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/SettingsIcon.png')
+        settings_sized = pygame.transform.scale(settings_icon, (75,75))
+        #display settings onto the screen
+        screen.blit(settings_sized, (740, 15))
+
+        #question text
+        font = pygame.font.Font('freesansbold.ttf', 20) 
+        question_text = font.render(text, True, (0,0,0)) 
+
+        #textbox to hold questions
+        textbox = question_text.get_rect()
+        textbox.center = (400,100)
+
+        #user input
+        questions.fill((0,0,0), answer)
+        answer_text = font.render(input_text, True, (255,255,255)) 
+
+        #submit button for question 1          
+        if 300 < mouse_pos[0] < 375 and 200 < mouse_pos[1] < 230:
+            pygame.draw.rect(questions, (216,191,216), (300,200,75,30))
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if input_text != '':
+                    if input_text == quest_answer:
+                        #calls the outcome function
+                        run = outcome('Correct!', False)
+                        #calls the spell function by giving it booleans according to which round it is 
+                        test_bool = spell(round1, round2, round3, round4, True)
+                        if test_bool == False:
+                            space, user_dead, enemy_dead = spell_ball(True, health, user_damage, enemy_damage, space, user_dead, enemy_dead)
+                            if space == True:
+                                close = True
+                                #return the booleans that indicate whether the characters are dead or not
+                                return close, user_dead, enemy_dead
+                                break
+
+                    else:
+                        run = outcome("Incorrect, try again.", True)
+                        incorrect += 1  
+
+                else:
+                    draw_text("Try entering something", fontTwo, (0,0,0), screen, 100,500)
+
+        else:
+            pygame.draw.rect(questions, (153,50,204), (300,200,75,30))  
+
+        #font settings for the hint button
+        hint_font = pygame.font.Font('freesansbold.ttf', 20)
+        hint_text = hint_font.render('Hint', True, (0,0,0))
+        hint_rect = hint_text.get_rect()
+        hint_rect.center = (695, 535)
+
+        #drawing the hint button
+        if incorrect >= 2:
+
+            if 620 < mouse_pos[0] < 770 and 500 < mouse_pos[1] < 570:
+                pygame.draw.rect(questions, (255,255,153), (620,500,150,70))
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    hint_window(hint)
+
+            else:
+                pygame.draw.rect(questions, (255,255,0), (620,500,150,70))
+
+            #displaying the 'hint' text
+            questions.blit(hint_text, hint_rect)
+
+        #solution box  
+        if incorrect >= 3:
+
+            #font settings for the solution
+            solution_font = pygame.font.Font('freesansbold.ttf', 20)
+            solution_text = solution_font.render(solution, True, (0,0,0))
+            solution_rect = solution_text.get_rect()
+            solution_rect = (100,350)
+            questions.blit(solution_text, solution_rect)
+
+            #making the submit button disappear (not completely done --> the user is still able to press it)
+            pygame.draw.rect(questions, (255,255,255), (300,200,75,30))
+
+            #font settings for the 'Ok.' button
+            ok_font = pygame.font.Font('freesansbold.ttf', 20)
+            ok_text = ok_font.render(' Ok. ', True, (0,0,0))
+            ok_rect = ok_text.get_rect()
+            ok_rect = (270,460)
+            questions.blit(ok_text, ok_rect)
+
+            #if the button OK. is pressed, then the enemy will attack the user
+            if 270 < mouse_pos[0] < 300 and 460 < mouse_pos[1] < 490:
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    space, user_dead, enemy_dead = spell_ball(False, health, user_damage, enemy_damage, space, user_dead, enemy_dead)
+                    if space == True:
+                        close = True
+                        return close, user_dead, enemy_dead
+                        break
+
+
+        #font settings for the submit button
+        button_font = pygame.font.Font('freesansbold.ttf', 20)
+        button_text = button_font.render('Submit', True, (255,255,255))
+        button_rect = button_text.get_rect()
+        button_rect.center = (337, 215)
+
+        #adding the elements to the 'questions' screen
+        questions.blit(question_text, textbox)
+        questions.blit(answer_text, (answer.x, answer.y))
+        questions.blit(button_text, button_rect)
+
+        pygame.display.update()
+
+        pygame.display.flip()
+
+
+#hint window
+def hint_window(hint):
+
+    pressed = True
+    while pressed:
+        mouse_pos = pygame.mouse.get_pos()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pop = False 
+
+        hint_w = pygame.display.set_mode((800,600))
+        hint_w.fill((255,255,255))
+
+        #settings    
+        settings_icon = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/SettingsIcon.png')
+        settings_sized = pygame.transform.scale(settings_icon, (75,75))
+        #display settings onto the screen
+        screen.blit(settings_sized, (740, 15))
+
+        #font settings for the hint 
+        hintText_font = pygame.font.Font('freesansbold.ttf', 30) 
+        hintText_text = hintText_font.render(hint, True, (0,0,0)) 
+        hintText_rect = hintText_text.get_rect()
+        hintText_rect.center = (400,300)
+
+        if 350 < mouse_pos[0] < 450 and 400 < mouse_pos[1] < 440:
+            pygame.draw.rect(hint_w, (216,191,216), (350,400,100,40))
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                pressed = False
+        else:
+            pygame.draw.rect(hint_w, (153,50,204), (350,400,100,40))
+
+        button_font = pygame.font.Font('freesansbold.ttf', 30)
+        button_text = button_font.render('Okay', True, (255,255,255))
+        button_rect = button_text.get_rect()
+        button_rect.center = (400, 420)
+
+        hint_w.blit(button_text, button_rect)
+        hint_w.blit(hintText_text, hintText_rect)
+
+        pygame.display.flip()
+
+
+#'b' boolean is returned and reassigned as 'run' to determine whether or not round 1 will continue            
+def outcome(popup_text, b):
+    pop = True
+
+    while pop:
+
+        mouse_pos = pygame.mouse.get_pos()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pop = False
+
+        window = pygame.display.set_mode((800,600))
+        window.fill((255,255,255))
+
+        #settings    
+        settings_icon = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/SettingsIcon.png')
+        settings_sized = pygame.transform.scale(settings_icon, (75,75))
+        #display settings onto the screen
+        screen.blit(settings_sized, (740, 15))
+
+        font = pygame.font.Font('freesansbold.ttf', 80) 
+        display_text = font.render(popup_text, True, (0,0,0)) 
+
+        #textbox to hold questions
+        textbox = display_text.get_rect()
+        textbox.center = (400,300)
+
+        #take the position of the mouse and check if it matches the position of the rectangle. 
+        #If the position matches, then the colour of the rectangle will change.
+        if 350 < mouse_pos[0] < 450 and 400 < mouse_pos[1] < 440:
+            pygame.draw.rect(window, (216,191,216), (350,400,100,40))
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                pop = False
+                return b;
+        else:
+            pygame.draw.rect(window, (153,50,204), (350,400,100,40))
+
+        button_font = pygame.font.Font('freesansbold.ttf', 30)
+        button_text = button_font.render('Okay', True, (255,255,255))
+        button_rect = button_text.get_rect()
+        button_rect.center = (400, 420)
+
+        window.blit(display_text, textbox)
+        window.blit(button_text, button_rect)
+
+        pygame.display.flip()
+
+
+def spell(round1, round2, round3, round4, test1):
+
+    spell = True
+    while spell: 
+        mouse_pos = pygame.mouse.get_pos()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                spell = False
+
+        spell_window = pygame.display.set_mode((800,600))
+        spell_window.fill((255,255,255))
+
+        #settings    
+        settings_icon = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/SettingsIcon.png')
+        settings_sized = pygame.transform.scale(settings_icon, (75,75))
+        #display settings onto the screen
+        screen.blit(settings_sized, (740, 15))
+
+        #title font settings
+        title_font = pygame.font.Font('freesansbold.ttf', 40)
+        title_text = title_font.render('Choose an attack!', True, (0,0,0))
+        title_rect = title_text.get_rect()
+        title_rect.center = (230,100)
+
+        #displaying the title
+        spell_window.blit(title_text, title_rect)
+
+        if round1:
+            #get the mouse position and see if it matches the button
+            if 250 < mouse_pos[0] < 370 and 200 < mouse_pos[1] < 320:
+                pygame.draw.rect(spell_window, (216,191,216), (250,200,120,120))
+                if event.type == pygame.MOUSEBUTTONDOWN:            
+                    test1 = False
+                    return test1 
+                    break
+
+            else:
+                pygame.draw.rect(spell_window, (153,50,204), (250,200,120,120))
+
+            #font for the button attack text
+            button_font = pygame.font.Font('freesansbold.ttf', 22)
+            button_text = button_font.render('Icy blast', True, (255,255,255))
+            button_rect = button_text.get_rect()
+            button_rect.center = (310, 260)
+
+            #draw all the rectangles for the attacks
+            pygame.draw.rect(spell_window, (211,211,211), (420,200,120,120))
+            pygame.draw.rect(spell_window, (211,211,211), (250,350,120,120))
+            pygame.draw.rect(spell_window, (211,211,211), (420,350,120,120))
+
+            #set all the text for the attack rectangles 
+            round2_font = pygame.font.Font('freesansbold.ttf', 12)
+            round2_text = round2_font.render('Unlocks on level 2', True, (255,255,255))
+            round2_rect = round2_text.get_rect()
+            round2_rect.center = (480, 260)
+
+            round3_font = pygame.font.Font('freesansbold.ttf', 12)
+            round3_text = round3_font.render('Unlocks on level 3', True, (255,255,255))
+            round3_rect = round3_text.get_rect()
+            round3_rect.center = (310, 410)
+
+            round4_font = pygame.font.Font('freesansbold.ttf', 12)
+            round4_text = round4_font.render('Unlocks on level 4', True, (255,255,255))
+            round4_rect = round4_text.get_rect()
+            round4_rect.center = (480, 410)
+
+            #display the text on the window
+            spell_window.blit(button_text, button_rect)
+            spell_window.blit(round2_text, round2_rect)
+            spell_window.blit(round3_text, round3_rect)
+            spell_window.blit(round4_text, round4_rect)
+
+
+            pygame.display.flip()
+
+        if round2:
+            #get the mouse position and see if it matches the button
+            if 250 < mouse_pos[0] < 370 and 200 < mouse_pos[1] < 320:
+                pygame.draw.rect(spell_window, (216,191,216), (250,200,120,120))
+                if event.type == pygame.MOUSEBUTTONDOWN:            
+                    test1 = False
+                    return test1 
+                    break
+
+            else:
+                pygame.draw.rect(spell_window, (153,50,204), (250,200,120,120))
+
+            #font for the button attack text
+            button_font = pygame.font.Font('freesansbold.ttf', 22)
+            button_text = button_font.render('Icy blast', True, (255,255,255))
+            button_rect = button_text.get_rect()
+            button_rect.center = (310, 260)
+
+            #set up for button 2
+            if 420 < mouse_pos[0] < 540 and 200 < mouse_pos[1] < 320:
+                pygame.draw.rect(spell_window, (216,191,216), (420,200,120,120))
+                if event.type == pygame.MOUSEBUTTONDOWN:            
+                    test1 = False
+                    return test1 
+                    break
+
+            else:
+                pygame.draw.rect(spell_window, (153,50,204), (420,200,120,120))
+
+            #draw all the rectangles for the attacks
+            pygame.draw.rect(spell_window, (211,211,211), (250,350,120,120))
+            pygame.draw.rect(spell_window, (211,211,211), (420,350,120,120))
+
+            #settings for button 2
+            round2_font = pygame.font.Font('freesansbold.ttf', 22)
+            round2_text = round2_font.render('Fire Melt', True, (255,255,255))
+            round2_rect = round2_text.get_rect()
+            round2_rect.center = (480, 260)
+
+            round3_font = pygame.font.Font('freesansbold.ttf', 12)
+            round3_text = round3_font.render('Unlocks on level 3', True, (255,255,255))
+            round3_rect = round3_text.get_rect()
+            round3_rect.center = (310, 410)
+
+            round4_font = pygame.font.Font('freesansbold.ttf', 12)
+            round4_text = round4_font.render('Unlocks on level 4', True, (255,255,255))
+            round4_rect = round4_text.get_rect()
+            round4_rect.center = (480, 410)
+
+            #display the text on the window
+            spell_window.blit(button_text, button_rect)
+            spell_window.blit(round2_text, round2_rect)
+            spell_window.blit(round3_text, round3_rect)
+            spell_window.blit(round4_text, round4_rect)
+
+
+            pygame.display.flip()
+
+
+def spell_ball(correct, health, user_damage, enemy_damage, space, user_dead, enemy_dead):
+
+    spell = True
+    x = 240
+
+    global correct_variable
+    global incorrect_variable
+
+    if correct:
+        correct_variable += 1
+
+    else:
+        incorrect_variable +=1
+
+    #enemy image    
+    global enemy_sized
+
+    #spell animation
+    ball = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/spell.png')
+    small_ball = pygame.transform.scale(ball, (50, 30))
+
+    #background image
+    background = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/picture.PNG').convert()
+
+    #standing character image
+    standing_sized = pygame.transform.scale(standing, (125,125))     
+
+    if correct:
+        enemy_1.health = enemy_1.health - enemy_1.damage
+
+    else:
+        user.health = user.health - user.damage
+        x = 420
+
+
+    while spell: 
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                questions = False  
+
+
+
+        screen.blit(background, (-250,0))
+        screen.blit(standing_sized, (220,400))
+        screen.blit(enemy_sized, (220 + 220, 400))
+
+        #settings    
+        settings_icon = pygame.image.load('C:/Users/Lam/Documents/Gallivanter/SettingsIcon.png')
+        settings_sized = pygame.transform.scale(settings_icon, (75,75))
+        #display settings onto the screen
+        screen.blit(settings_sized, (740, 15))
+
+        #user health bar
+        pygame.draw.rect(screen, (255,0,0), (50,75,health*2,50))
+        #enemy health bar
+        pygame.draw.rect(screen, (255,0,0),(550,75, health*2,50))
+
+        #if statement to avoid x values from being multiplied by -1 when the correct_variable is = 0. 
+        #This avoids the code from drawing a black rectangle when it is not needed
+        if correct_variable == 0 or correct_variable == 1:
+            #drawing a black rectangle over the enemy health bar between questions answered
+            pygame.draw.rect(screen, (0,0,0), (550,75,enemy_1.damage*2*(correct_variable),50))
+
+        else: 
+            pygame.draw.rect(screen, (0,0,0), (550,75,enemy_1.damage*2*(correct_variable -1),50))
+
+        #same logic for the incorrect_variable
+        if incorrect_variable == 0 or incorrect_variable == 1:
+            #drawing a black rectangle over the user health bar between questions answered
+            pygame.draw.rect(screen, (0,0,0), ((50+health*2) - user.damage*2*(incorrect_variable),75,user.damage*2*(incorrect_variable),50))
+
+        else:
+            pygame.draw.rect(screen, (0,0,0), ((50+health*2) - user.damage*2*(incorrect_variable-1),75,user.damage*2*(incorrect_variable-1),50))
+
+
+        if correct: 
+#              
+            #stop the while loop if the spell reaches the enemy
+            if x < 420:
+                #move the spell image 
+                x = x + 1
+                hit_sound.play()
+
+
+            else:
+                #the spell will disappear from the screen
+                small_ball.fill(transparent) 
+                x = x + 0
+
+                #drawing a black rectangle over the enemy health bar to show that some damage was lost 
+                pygame.draw.rect(screen, (0,0,0), (550,75,(enemy_1.damage*2)*correct_variable,50))
+
+                if enemy_1.health <= 0:
+                    enemy_sized.fill(transparent)
+                    enemy_dead = True
+
+                #acting as a transition controller to go to the next screen 
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    space = True
+                    spell = False
+                    return space, user_dead, enemy_dead
+
+            #display the spell image
+            screen.blit(small_ball, (x, 450))
+
+            pygame.display.update()       
+
+
+        else:     
+
+            #stop the while loop if the spell reaches the enemy
+            if x > 220:
+                #move the spell image 
+                x = x - 1
+                hit_sound.play()
+
+            else:
+                small_ball.fill(transparent)
+                x = x+0
+
+                #drawing a black rectangle over the enemy health bar to show that some damage was lost 
+                pygame.draw.rect(screen, (0,0,0), ((50 + health*2)- ((user.damage*2)*incorrect_variable),75, (user.damage*2)*incorrect_variable,50))
+
+                if user.health <= 0:
+                    user_dead = True
+#                     enemy_sized.fill(transparent)
+
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    spell = False
+                    space = True
+                    return space, user_dead, enemy_dead
+
+            #display the spell image
+            screen.blit(pygame.transform.flip(small_ball, True, False), (x, 450))
+
+            pygame.display.update()
+
+
+main_menu()
